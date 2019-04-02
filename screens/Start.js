@@ -32,8 +32,45 @@ export default class Start extends React.Component {
     transitionState: State.Launching,
   };
 
+  async componentDidMount() {
+    await sleep(600);
+
+    await configureTransition(() => {
+      this.setState({
+        transitionState: State.WillTransitionIn
+      });
+    });
+
+
+  }
+
   render() {
-    return null;
+    const { size, onChangeSize } = this.props;
+    const { transitionState } = this.state;
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.logo}>
+          <Logo/>
+        </View>
+        { transitionState !== State.Launching && (
+          <View>
+            <Toggle 
+              options={BOARD_SIZES}
+              value={size}
+              onChange={onChangeSize}/>
+          </View>
+        )}
+
+        { transitionState !== State.Launching && (
+          <View>
+            <Button
+              title={'Start Game'}
+              onPress={() => console.log('~ Start ~')}/>
+          </View>
+        )}
+      </View>
+    )
   }
 }
 
