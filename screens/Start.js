@@ -32,8 +32,11 @@ export default class Start extends React.Component {
     transitionState: State.Launching,
   };
 
+  toggleOpacity = new Animated.Value(0);
+  buttonOpacity = new Animated.Value(0);
+
   async componentDidMount() {
-    await sleep(600);
+    await sleep(500);
 
     await configureTransition(() => {
       this.setState({
@@ -41,12 +44,26 @@ export default class Start extends React.Component {
       });
     });
 
+    Animated.timing(this.toggleOpacity, {
+      toValue: 1,
+      duration: 500,
+      delay: 500,
+      useNativeDriver: true
+    }).start();
 
+    Animated.timing(this.buttonOpacity, {
+      toValue: 1,
+      duration: 500,
+      delay: 1000,
+      useNativeDriver: true
+    }).start();
   }
 
   render() {
     const { size, onChangeSize } = this.props;
     const { transitionState } = this.state;
+    const toggleStyle = { opacity: this.toggleOpacity };
+    const buttonStyle = { opacity: this.buttonOpacity };
 
     return (
       <View style={styles.container}>
@@ -54,20 +71,20 @@ export default class Start extends React.Component {
           <Logo/>
         </View>
         { transitionState !== State.Launching && (
-          <View>
+          <Animated.View style={toggleStyle}>
             <Toggle 
               options={BOARD_SIZES}
               value={size}
               onChange={onChangeSize}/>
-          </View>
+          </Animated.View>
         )}
 
         { transitionState !== State.Launching && (
-          <View>
+          <Animated.View style={buttonStyle}>
             <Button
               title={'Start Game'}
               onPress={() => console.log('~ Start ~')}/>
-          </View>
+          </Animated.View>
         )}
       </View>
     )
