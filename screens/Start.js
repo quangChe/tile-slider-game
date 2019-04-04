@@ -36,7 +36,7 @@ export default class Start extends React.Component {
   buttonOpacity = new Animated.Value(0);
 
   async componentDidMount() {
-    await sleep(500);
+    await sleep(700);
 
     await configureTransition(() => {
       this.setState({
@@ -47,14 +47,14 @@ export default class Start extends React.Component {
     Animated.timing(this.toggleOpacity, {
       toValue: 1,
       duration: 500,
-      delay: 500,
+      delay: 700,
       useNativeDriver: true
     }).start();
 
     Animated.timing(this.buttonOpacity, {
       toValue: 1,
       duration: 500,
-      delay: 1000,
+      delay: 1200,
       useNativeDriver: true
     }).start();
   }
