@@ -24,6 +24,24 @@ const State = {
 };
 
 export default class Game extends React.Component {
+  constructor(props) {
+    super(props);
+
+    const {image} = props;
+
+    this.state = {
+      transitionState: image 
+        ? State.WillTransitionIn
+        : State.LoadingImage,
+      moves: 0,
+      elapsed: 0,
+      previousMove: null,
+      image: null
+    };
+
+    configureTransition();
+  }
+
   static propTypes = {
     puzzle: PuzzlePropType.isRequired,
     image: Image.propTypes.source,
@@ -34,6 +52,17 @@ export default class Game extends React.Component {
   static defaultProps = {
     image: null,
   };
+
+  componentWillReceiveProps(nextProps) {
+    const { image } = nextProps;
+    const { transitionState } = this.state;
+
+    if (image && transitionState === State.LoadingImage) {
+      configureTransition(() => {
+        this.setState({ transitionState: State.WillTransitionIn });
+      });
+    }
+  }
 
   handlePressSquare = square => {
     const { puzzle, onChange } = this.props;
@@ -52,9 +81,81 @@ export default class Game extends React.Component {
     }
   };
 
+  handleBoardTransitionIn = () => {
+    this.intervalId = setInterval(() => {
+      const { elapsed } = this.state;
+      this.setState({ elapsed: elapsed + 1 });
+    }, 1000);
+  };
+
+  handlePressQuit = () => {
+    Alert.alert(
+      'Quit Game', 
+      'Are you sure you want to quit and lose your progress on this puzzle?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Quit', style: 'destructive', onPress: this.requestTransitionOut},
+      ]
+    )
+  };
+
+  requestTransitionOut = () => {
+    clearInterval(this.intervalId);
+
+    this.setState({ transitionState: State.RequestTransitionOut });
+  };
+  
+  handleBoardTransitionOut = async () => {
+    const { onQuit } = this.props;
+
+    configureTransition(() => {
+      this.setState({ transitionState: State.WillTransitionOut });
+    });
+
+    onQuit();
+  };
+
   render() {
-    return null;
+    const { image, puzzle, puzzle: { size } } = this.props;
+    const {
+      transitionState,
+      moves,
+      elapsed,
+      previousMove
+    } = this.state;
+
+    return (
+      transitionState !== State.WillTransitionOut && (
+        <View style={styles.container}>
+          {transitionState === State.LoadingImage && (
+            <ActivityIndicator
+              size={'large'}
+              color={'rgba(255,255,255,0.5)'}
+            />
+          )}
+          {transitionState !== State.LoadingImage && (
+            <View style={styles.centered}>
+              <View style={styles.header}>
+                <Preview image={image} boardSize={size} />
+                <Stats moves={moves} time={elapsed} />
+              </View>
+              <Board
+                puzzle={puzzle}
+                image={image}
+                previousMove={previousMove}
+                teardown={transitionState === State.RequestTransitionOut}
+                onMoveSquare={this.handlePressSquare}
+                onTransitionIn={this.handleBoardTransitionIn}
+                onTransitionOut={this.handleBoardTransitionOut}/>
+              <Button title={'Quit'}
+                onPress={this.handlePressQuit}/>
+            </View>
+          )}
+        </View>
+      )
+    );
   }
+
 }
 
 const styles = StyleSheet.create({
